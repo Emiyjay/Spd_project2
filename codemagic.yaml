@@ -6,11 +6,6 @@ workflows:
       - name: Install dependencies
         script: |
           pip install buildozer cython
-          sudo apt-get install -y \
-            git zip unzip openjdk-17-jdk \
-            python3-pip autoconf libtool pkg-config \
-            zlib1g-dev libncurses5-dev libncursesw5-dev \
-            libtinfo5 cmake libffi-dev libssl-dev
 
       - name: Create buildozer.spec if missing
         script: |
