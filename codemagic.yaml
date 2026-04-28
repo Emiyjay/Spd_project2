@@ -5,12 +5,12 @@ workflows:
     scripts:
       - name: Install Python dependencies
         script: |
-          pip install setuptools buildozer cython
+          pip install setuptools
+          pip install --upgrade buildozer python-for-android cython
 
       - name: Install macOS build prerequisites
         script: |
           brew install automake openssl@3 pkg-config || true
-          brew link openssl@3 --force || true
 
       - name: Setup Android SDK manually
         script: |
@@ -23,7 +23,6 @@ workflows:
           rm cmdline-tools.zip
 
           export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-
           yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses || true
           sdkmanager --sdk_root="$ANDROID_SDK_ROOT" \
             "platform-tools" \
@@ -38,8 +37,21 @@ workflows:
         script: |
           export ANDROID_SDK_ROOT="$HOME/.buildozer/android/platform/android-sdk"
           export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
-          export P4A_PREREQUISITES_SKIP_AUTOMAKE=1
-          yes | buildozer android debug 2>&1
+          export LDFLAGS="-L/opt/homebrew/opt/openssl@3/lib"
+          export CPPFLAGS="-I/opt/homebrew/opt/openssl@3/include"
+
+          # First run: let buildozer clone p4a (may fail — ok)
+          buildozer android debug || true
+
+          # Patch hardcoded openssl@1.1 -> openssl@3
+          P4A_PREREQ="$HOME/clone/.buildozer/android/platform/python-for-android/pythonforandroid/prerequisites.py"
+          if [ -f "$P4A_PREREQ" ]; then
+            sed -i '' 's/openssl@1\.1/openssl@3/g' "$P4A_PREREQ"
+            echo "Patched openssl@1.1 -> openssl@3"
+          fi
+
+          # Final build
+          buildozer android debug
 
     artifacts:
       - bin/*.apk
@@ -47,4 +59,4 @@ workflows:
     publishing:
       email:
         recipients:
-          - spdregistration@gmail.com
+          - emmanueljohn98878@gmail.com
