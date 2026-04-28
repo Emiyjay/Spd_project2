@@ -20,10 +20,21 @@ workflows:
           export LDFLAGS="-L/opt/homebrew/opt/openssl@3/lib"
           export CPPFLAGS="-I/opt/homebrew/opt/openssl@3/include"
 
-          # Patch p4a openssl if already cloned
-          P4A_PREREQ="$HOME/clone/.buildozer/android/platform/python-for-android/pythonforandroid/prerequisites.py"
-          [ -f "$P4A_PREREQ" ] && sed -i '' 's/openssl@1\.1/openssl@3/g' "$P4A_PREREQ"
+          # Pass 1: let buildozer clone p4a (will fail on openssl — that's ok)
+          yes | buildozer android debug || true
 
+          # Patch the hardcoded openssl@1.1 in the freshly cloned p4a
+          P4A_PREREQ="/Users/builder/clone/.buildozer/android/platform/python-for-android/pythonforandroid/prerequisites.py"
+          if [ -f "$P4A_PREREQ" ]; then
+            sed -i '' 's/openssl@1\.1/openssl@3/g' "$P4A_PREREQ"
+            echo "✅ Patched openssl@1.1 -> openssl@3"
+            grep -n "openssl" "$P4A_PREREQ"
+          else
+            echo "❌ prerequisites.py not found at: $P4A_PREREQ"
+            find /Users/builder -name "prerequisites.py" 2>/dev/null
+          fi
+
+          # Pass 2: now build with patched p4a
           yes | buildozer android debug
 
     artifacts:
