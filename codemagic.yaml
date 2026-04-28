@@ -3,12 +3,14 @@ workflows:
     name: SPD Hub APK Build
     max_build_duration: 60
 
-    environment:
-      python: 3.10
-
     scripts:
-      - name: Install Python dependencies
+      - name: Setup Python & install dependencies
         script: |
+          pyenv install 3.10.13 || true
+          pyenv global 3.10.13
+
+          python --version
+          pip install --upgrade pip
           pip install setuptools
           pip install --upgrade buildozer
           pip install "cython<3.0"
