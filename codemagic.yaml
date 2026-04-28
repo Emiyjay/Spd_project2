@@ -1,3 +1,4 @@
+
 workflows:
   android-kivy:
     name: SPD Hub APK Build
@@ -5,16 +6,13 @@ workflows:
     scripts:
       - name: Install dependencies
         script: |
+          pip install setuptools
           pip install buildozer cython
 
       - name: Create buildozer.spec if missing
         script: |
           if [ ! -f buildozer.spec ]; then
             buildozer init
-            sed -i 's/^title = .*/title = SPD Hub/' buildozer.spec
-            sed -i 's/^package.name = .*/package.name = spdhub/' buildozer.spec
-            sed -i 's/^package.domain = .*/package.domain = org.spdproject/' buildozer.spec
-            sed -i 's/^requirements = .*/requirements = python3,kivy/' buildozer.spec
           fi
 
       - name: Build APK
