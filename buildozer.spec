@@ -2,7 +2,7 @@
 title = SPD Hub Manager
 package.name = spdhub
 package.domain = org.spd.hub
-
+version = 1.0
 source.dir = .
 source.include_exts = py,csv
 
