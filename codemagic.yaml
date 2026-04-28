@@ -2,39 +2,41 @@ workflows:
   android-kivy:
     name: SPD Hub APK Build
     max_build_duration: 60
+
+    environment:
+      python: 3.10
+
     scripts:
       - name: Install Python dependencies
         script: |
           pip install setuptools
-          pip install --upgrade buildozer cython
+          pip install --upgrade buildozer
+          pip install "cython<3.0"
 
       - name: Install macOS build prerequisites
         script: |
-          brew install automake openssl@3 pkg-config || true
+          brew install automake openssl@3 pkg-config cmake autoconf libtool
+
+      - name: Accept Android licenses
+        script: |
+          yes | sdkmanager --licenses || true
 
       - name: Build APK
         script: |
-          export ANDROID_SDK_ROOT="/usr/local/share/android-sdk"
-          export ANDROID_NDK_HOME="/usr/local/share/android-sdk/ndk/29.0.14206865"
+          export ANDROID_SDK_ROOT="/Users/builder/.buildozer/android/platform/android-sdk"
+          export ANDROID_NDK_HOME="/Users/builder/.buildozer/android/platform/android-ndk-r25b"
           export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
-          export LDFLAGS="-L/opt/homebrew/opt/openssl@3/lib"
-          export CPPFLAGS="-I/opt/homebrew/opt/openssl@3/include"
 
-          # Pass 1: let buildozer clone p4a (will fail on openssl — that's ok)
+          # First pass
           yes | buildozer android debug || true
 
-          # Patch the hardcoded openssl@1.1 in the freshly cloned p4a
+          # Patch OpenSSL issue
           P4A_PREREQ="/Users/builder/clone/.buildozer/android/platform/python-for-android/pythonforandroid/prerequisites.py"
           if [ -f "$P4A_PREREQ" ]; then
             sed -i '' 's/openssl@1\.1/openssl@3/g' "$P4A_PREREQ"
-            echo "✅ Patched openssl@1.1 -> openssl@3"
-            grep -n "openssl" "$P4A_PREREQ"
-          else
-            echo "❌ prerequisites.py not found at: $P4A_PREREQ"
-            find /Users/builder -name "prerequisites.py" 2>/dev/null
           fi
 
-          # Pass 2: now build with patched p4a
+          # Second pass
           yes | buildozer android debug
 
     artifacts:
@@ -43,4 +45,4 @@ workflows:
     publishing:
       email:
         recipients:
-          - spdregistration@gmail.com
+          - emmanueljohn98878@gmail.com
