@@ -2,8 +2,6 @@ workflows:
   android-kivy:
     name: SPD Hub APK Build
     max_build_duration: 60
-    environment:
-      python: 3.10
     scripts:
       - name: Install dependencies
         script: |
